@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>劉采盈的俄羅斯方塊</title>
+    <!-- 引入 Tailwind CSS 確保整體響應式佈局和現代感 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* 更改: 極深灰色背景 */
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 2rem;
+            padding-bottom: 2rem; /* 新增: 底部間距 */
+            min-height: 100vh;
+        }
+
+        /* 遊戲核心區域 (包含畫布和側邊欄) */
+        #main-game-area {
+            display: flex;
+            gap: 2rem;
+            max-width: 90%;
+            margin: 0 auto;
+            align-items: stretch; /* 修正: 讓側邊欄拉伸到與畫布相同的高度 */
+            /* 桌面版寬度：12*24 (288) + 32 (gap) + 160 (sidebar) = 480px */
+            min-width: 480px; 
+        }
+
+        /* 遊戲板 Canvas 樣式 */
+        #game-board {
+            border: 8px solid #00bcd4; /* 更改: 亮青色邊框 */
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 188, 212, 0.4);
+            background-color: #202020; /* 更改: 較深的遊戲板背景 */
+        }
+
+        /* 側邊資訊欄 - 包含所有資訊和控制 */
+        #sidebar {
+            width: 160px; /* 縮小寬度 */
+            display: flex;
+            flex-direction: column;
+            /* 移除 gap，改用 space-around 均勻分佈內容，填滿垂直空間 */
+            justify-content: space-around; 
+        }
+
+        /* 資訊卡片樣式 - 縮小版 */
+        .info-card {
+            background-color: #2a2a2a; /* 更改: 深灰色卡片 */
+            padding: 0.5rem; /* 縮小內邊距 */
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            /* 確保卡片本身不拉伸 */
+            flex-shrink: 0; 
+        }
+
+        .info-card h2 {
+            font-size: 1rem; /* 縮小字體 */
+            font-weight: bold;
+            margin-bottom: 0.2rem; /* 縮小間距 */
+            color: #00ffb7; /* 更改: 亮青綠色標題 */
+        }
+
+        /* 分數和等級顯示 */
+        .data-display {
+            font-size: 1.75rem; /* 縮小字體 */
+            font-weight: 900;
+            color: #ffff00; /* 更改: 經典亮黃色數字 */
+        }
+        
+        /* 標題顏色 */
+        #sidebar h1 {
+            color: #00ffb7; /* 更改: 亮青綠色標題 */
+            font-size: 1.5rem; 
+            line-height: 1.2; 
+            margin-bottom: 0; /* 移除 Tailwind mb-2 */
+        }
+        
+        /* 下一個方塊預覽 */
+        #next-piece-canvas {
+            border: 2px dashed #00bcd4; /* 更改: 亮青色虛線 */
+            background-color: #202020;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* 遊戲按鈕 */
+        .game-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* 全圓角 */
+            font-weight: bold;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-start {
+            background-color: #4CAF50; /* 綠色 */
+            color: white;
+        }
+
+        .button-pause {
+            background-color: #FFA500; /* 更改: 橘色/琥珀色 */
+            color: #333;
+        }
+
+        /* 全寬操作說明卡片 (位於下方) */
+        #instructions-card {
+            max-width: 480px; /* 匹配 #main-game-area 的總寬度 (480px) */
+            width: 90%; 
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        #instructions-card .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem 1.5rem;
+        }
+
+
+        /* 訊息框樣式維持不變 */
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 3rem;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+            border: 5px solid #ff6699; 
+            display: none; 
+            width: 300px;
+        }
+
+        .message-box h1 {
+            color: #ff6699; 
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .message-box p {
+            font-size: 1.5rem;
+            color: #e0e0e0;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            /* 調整 mobile 端的標題大小 */
+            #sidebar h1 {
+                font-size: 1.75rem;
+            }
+            #main-game-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+                min-width: 100%; /* 移除最小寬度限制 */
+            }
+            #sidebar {
+                width: 100%;
+                /* Mobile: 橫向排列分數、等級、下一塊 */
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+            .info-card {
+                flex: 1 1 45%;
+                min-width: 100px; /* 縮小手機端最小寬度 */
+            }
+            body {
+                padding: 1rem;
+            }
+            /* Mobile: 控制按鈕獨立佔滿寬度 */
+            #control-buttons {
+                width: 100%;
+                flex: 1 1 100%;
+                display: flex;
+                justify-content: space-around;
+                order: 4; 
+            }
+             /* Mobile: 操作說明卡片佔滿寬度 */
+            #instructions-card {
+                max-width: 100%;
+                width: 100%;
+                margin-top: 1rem;
+            }
+            #instructions-card .grid {
+                grid-template-columns: 1fr; /* 單欄顯示操作說明 */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂層 Wrapper 保持垂直排列 -->
+    <div id="game-wrapper" class="flex flex-col items-center">
+
+        <div id="main-game-area">
+            <!-- 遊戲主畫布 -->
+            <canvas id="game-board"></canvas>
+
+            <!-- 側邊欄：整合了所有資訊和控制 -->
+            <div id="sidebar">
+                <h1 class="text-3xl font-extrabold text-center w-full">
+                    劉采盈 的<br>俄羅斯方塊
+                </h1>
+
+                <!-- 分數卡片 (緊湊) -->
+                <div class="info-card">
+                    <h2>分數</h2>
+                    <div id="score-display" class="data-display">0</div>
+                </div>
+
+                <!-- 等級卡片 (緊湊) -->
+                <div class="info-card">
+                    <h2>等級</h2>
+                    <div id="level-display" class="data-display">1</div>
+                </div>
+
+                <!-- 下一塊預覽 (緊湊) -->
+                <div class="info-card">
+                    <h2>下一塊</h2>
+                    <!-- Canvas尺寸由JS設置：4*24 = 96px -->
+                    <canvas id="next-piece-canvas"></canvas> 
+                </div>
+                
+                <!-- 控制按鈕 -->
+                <div id="control-buttons" class="flex flex-col gap-3 w-full min-w-max">
+                    <button id="start-button" class="game-button button-start">開始遊戲 (Enter)</button>
+                    <button id="pause-button" class="game-button button-pause" disabled>暫停 (P)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全寬操作說明卡片 (新位置: 位於遊戲區塊下方) -->
+        <div id="instructions-card" class="info-card text-xs w-full text-left">
+            <p class="font-bold mb-3 text-center text-sm uppercase text-[#00ffb7]">操作說明</p>
+            <div class="grid">
+                <p>← → : 移動</p>
+                <p>↓ : 快速下落</p>
+                <p>↑ / X : 旋轉</p>
+                <p>Space : 立即下落</p>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- 遊戲訊息框 (暫停, 遊戲結束) -->
+    <div id="message-box" class="message-box">
+        <h1 id="message-title">暫停</h1>
+        <p id="message-text">按下 'P' 或 '繼續遊戲' 繼續</p>
+        <button id="message-button" class="game-button button-start mt-4">繼續遊戲</button>
+    </div>
+
+    <script>
+        // 設定 Canvas 和遊戲參數
+        const COLS = 12; 
+        const ROWS = 20;
+        const BLOCK_SIZE = 24; // 更改: 縮小方塊大小，以達到總高約 500px 的目標
+        const GAME_WIDTH = COLS * BLOCK_SIZE;
+        const GAME_HEIGHT = ROWS * BLOCK_SIZE;
+
+        const boardCanvas = document.getElementById('game-board');
+        const boardCtx = boardCanvas.getContext('2d');
+        boardCanvas.width = GAME_WIDTH;
+        boardCanvas.height = GAME_HEIGHT;
+
+        const nextCanvas = document.getElementById('next-piece-canvas');
+        const nextCtx = nextCanvas.getContext('2d');
+        nextCanvas.width = BLOCK_SIZE * 4; // 96px
+        nextCanvas.height = BLOCK_SIZE * 4; // 96px
+
+        const scoreDisplay = document.getElementById('score-display');
+        const levelDisplay = document.getElementById('level-display');
+        const startButton = document.getElementById('start-button');
+        const pauseButton = document.getElementById('pause-button');
+        const messageBox = document.getElementById('message-box');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const messageButton = document.getElementById('message-button');
+
+        // 方塊形狀定義：I, J, L, O, S, T, Z
+        // 座標相對於 (0, 0)
+        const SHAPES = [
+            // I (青色)
+            [[0, 1], [1, 1], [2, 1], [3, 1]],
+            // J (藍色)
+            [[0, 0], [0, 1], [1, 1], [2, 1]],
+            // L (橙色)
+            [[2, 0], [0, 1], [1, 1], [2, 1]],
+            // O (黃色)
+            [[0, 0], [1, 0], [0, 1], [1, 1]],
+            // S (綠色)
+            [[1, 0], [2, 0], [0, 1], [1, 1]],
+            // T (紫色)
+            [[1, 0], [0, 1], [1, 1], [2, 1]],
+            // Z (紅色)
+            [[0, 0], [1, 0], [1, 1], [2, 1]]
+        ];
+
+        // 顏色定義 (索引 1-7 對應 SHAPES) - 顏色已更新為更高對比度的調色板
+        const COLORS = [
+            '#000000',      // 0: 空白 (黑色)
+            '#00AEEF',      // 1: I (青色)
+            '#0000CC',      // 2: J (藍色)
+            '#FF9900',      // 3: L (橙色)
+            '#FFD700',      // 4: O (黃色/金色)
+            '#00CC00',      // 5: S (綠色)
+            '#9933CC',      // 6: T (紫色)
+            '#CC0000'       // 7: Z (紅色)
+        ];
+
+        // 遊戲狀態變數
+        let board;
+        let currentPiece;
+        let nextPieceShape;
+        let score = 0;
+        let level = 1;
+        let linesCleared = 0;
+        let lastTime = 0;
+        let dropCounter = 0;
+        let dropInterval = 1000; // 初始下降間隔 (毫秒)
+        let isGameOver = true;
+        let isPaused = false;
+        let animationFrameId = null;
+
+
+        // --- 核心遊戲功能 ---
+
+        /**
+         * 創建一個空白的遊戲板 (20x10 矩陣, 填充 0)
+         */
+        function createBoard() {
+            return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+        }
+
+        /**
+         * 隨機生成一個方塊的形狀和顏色索引
+         * @returns {{shape: number[][], colorIndex: number}} 方塊形狀和顏色索引
+         */
+        function createPiece() {
+            const index = Math.floor(Math.random() * SHAPES.length);
+            const shape = SHAPES[index];
+            const colorIndex = index + 1; // 顏色索引從 1 開始
+
+            return {
+                shape: shape,
+                colorIndex: colorIndex,
+                // 調整起始 X 座標以適應新寬度
+                pos: { x: Math.floor(COLS / 2) - 2, y: 0 } 
+            };
+        }
+
+        /**
+         * 繪製單一方塊
+         * @param {CanvasRenderingContext2D} ctx - 繪圖上下文
+         * @param {number} x - 方塊的 x 座標 (網格)
+         * @param {number} y - 方塊的 y 座標 (網格)
+         * @param {number} colorIndex - 顏色索引
+         * @param {boolean} isGhost - 是否繪製為幽靈方塊 (只繪製邊框)
+         */
+        function drawBlock(ctx, x, y, colorIndex, isGhost = false) {
+            if (colorIndex === 0 && !isGhost) return;
+
+            const px = x * BLOCK_SIZE;
+            const py = y * BLOCK_SIZE;
+
+            if (isGhost) {
+                // 幽靈方塊: 灰色邊框
+                ctx.strokeStyle = '#AAAAAA'; 
+                ctx.lineWidth = 2;
+                // 繪製邊框，稍微向內縮 1 像素以使其更精緻
+                ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+            } else {
+                const color = COLORS[colorIndex];
+                ctx.fillStyle = color;
+                ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+                
+                // 增加邊框和光影效果
+                ctx.strokeStyle = '#FFFFFF33'; // 淺色邊框
+                ctx.lineWidth = 1;
+                ctx.strokeRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+
+                // 簡單的光影效果
+                ctx.fillStyle = '#FFFFFF99';
+                ctx.fillRect(px + 2, py + 2, BLOCK_SIZE - 4, 2);
+                ctx.fillStyle = '#00000066';
+                ctx.fillRect(px + 2, py + BLOCK_SIZE - 4, BLOCK_SIZE - 4, 2);
+            }
+        }
+
+        /**
+         * 繪製整個遊戲板和靜止方塊
+         */
+        function drawBoard() {
+            // 清空畫布
+            boardCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // 繪製靜止方塊
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    drawBlock(boardCtx, x, y, board[y][x]);
+                }
+            }
+        }
+
+        /**
+         * 繪製當前下落中的方塊或幽靈方塊
+         */
+        function drawPiece(piece, ctx, offsetX = 0, offsetY = 0, isGhost = false) {
+            piece.shape.forEach(row => {
+                const x = piece.pos.x + row[0] + offsetX;
+                const y = piece.pos.y + row[1] + offsetY;
+                drawBlock(ctx, x, y, piece.colorIndex, isGhost);
+            });
+        }
+
+        /**
+         * 計算方塊最終落下的 Y 座標 (幽靈方塊位置)
+         * @returns {number} 最終落下的 y 座標
+         */
+        function calculateGhostPosition() {
+            let ghostY = currentPiece.pos.y;
+            const originalPos = { x: currentPiece.pos.x, y: currentPiece.pos.y };
+
+            // 模擬下落直到碰撞
+            while (true) {
+                const newPos = { x: originalPos.x, y: ghostY + 1 };
+                
+                // 使用方塊的當前形狀和新的模擬位置來檢查移動是否有效
+                if (isValidMove(currentPiece.shape, newPos)) {
+                    ghostY++;
+                } else {
+                    break;
+                }
+            }
+            return ghostY;
+        }
+
+
+        /**
+         * 檢查移動或旋轉是否有效 (無碰撞)
+         * @param {number[][]} newShape - 旋轉後的新形狀
+         * @param {{x: number, y: number}} newPos - 新位置
+         * @returns {boolean} - 是否有效
+         */
+        function isValidMove(newShape, newPos) {
+            for (let i = 0; i < newShape.length; i++) {
+                const [bx, by] = newShape[i];
+                const x = newPos.x + bx;
+                const y = newPos.y + by;
+
+                // 檢查邊界
+                if (x < 0 || x >= COLS || y >= ROWS) {
+                    return false;
+                }
+                // 檢查是否超出頂部 (允許負 Y 座標)
+                if (y < 0) {
+                    continue;
+                }
+                // 檢查與靜止方塊的碰撞
+                if (board[y][x] !== 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * 將當前方塊固定到遊戲板上
+         */
+        function mergePiece() {
+            currentPiece.shape.forEach(row => {
+                const x = currentPiece.pos.x + row[0];
+                const y = currentPiece.pos.y + row[1];
+                if (y >= 0 && y < ROWS && x >= 0 && x < COLS) {
+                    board[y][x] = currentPiece.colorIndex;
+                }
+            });
+        }
+
+        /**
+         * 檢查並清除已滿的行，並更新分數
+         */
+        function clearLines() {
+            let clearedCount = 0;
+            for (let y = ROWS - 1; y >= 0; y--) {
+                // 檢查該行是否已滿 (不包含 0)
+                if (board[y].every(cell => cell !== 0)) {
+                    clearedCount++;
+                    linesCleared++;
+                    // 將該行上方的所有行向下移動
+                    for (let k = y; k > 0; k--) {
+                        board[k] = [...board[k - 1]]; // 複製上一行
+                    }
+                    board[0].fill(0); // 最頂層行變為空白
+                    y++; // 由於行向下移動，需要重新檢查當前的 y
+                }
+            }
+
+            if (clearedCount > 0) {
+                // 根據清除的行數計分
+                let points = 0;
+                switch (clearedCount) {
+                    case 1: points = 100; break;
+                    case 2: points = 300; break;
+                    case 3: points = 500; break;
+                    case 4: points = 800; break; // Tetris!
+                }
+                score += points * level; // 等級會影響分數
+                scoreDisplay.textContent = score;
+
+                // 檢查是否升級 (例如，每清除 10 行升級)
+                const newLevel = Math.floor(linesCleared / 10) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    levelDisplay.textContent = level;
+                    // 加快下降速度
+                    dropInterval = Math.max(100, 1000 - (level - 1) * 70); // 最小 100ms
+                }
+            }
+        }
+
+        /**
+         * 旋轉方塊 - 已修正邏輯
+         */
+        function rotatePiece() {
+            const piece = currentPiece;
+            
+            // O-block (顏色索引 4) 不旋轉
+            if (piece.colorIndex === 4) return; 
+
+            // 1. 計算新的旋轉形狀
+            let rotatedShape = [];
+            // I-block 是 4x4 (max_dim=3), 其他標準方塊是 3x3 (max_dim=2)
+            const effectiveMaxDim = piece.colorIndex === 1 ? 3 : 2; 
+
+            piece.shape.forEach(([x, y]) => {
+                // 順時針 90 度旋轉公式: (x, y) -> (max_dim - y, x)
+                rotatedShape.push([effectiveMaxDim - y, x]);
+            });
+
+            // 2. 嘗試 Wall Kick (貼牆修正)
+            const originalPos = { ...piece.pos };
+            // 嘗試的平移修正 (簡單版 Wall Kick)
+            const kicks = [
+                [0, 0],   // 嘗試 0: 不平移 (最常見的旋轉)
+                [-1, 0],  // 嘗試 1: 左移
+                [1, 0],   // 嘗試 2: 右移
+                [0, -1]   // 嘗試 3: 上移
+            ];
+
+            for (const [kx, ky] of kicks) {
+                const newPos = { x: originalPos.x + kx, y: originalPos.y + ky };
+                
+                if (isValidMove(rotatedShape, newPos)) {
+                    // 旋轉成功
+                    piece.shape = rotatedShape;
+                    piece.pos = newPos;
+                    return;
+                }
+            }
+            // 旋轉失敗，不執行任何操作
+        }
+        
+        /**
+         * 處理方塊的移動
+         * @param {number} dir - 1 (右) 或 -1 (左)
+         */
+        function movePiece(dir) {
+            const newPos = { x: currentPiece.pos.x + dir, y: currentPiece.pos.y };
+            if (isValidMove(currentPiece.shape, newPos)) {
+                currentPiece.pos = newPos;
+            }
+        }
+
+        /**
+         * 處理方塊的下落
+         * @param {number} dir - 1 (下)
+         */
+        function dropPiece(dir = 1) {
+            const newPos = { x: currentPiece.pos.x, y: currentPiece.pos.y + dir };
+            if (isValidMove(currentPiece.shape, newPos)) {
+                currentPiece.pos = newPos;
+                return true;
+            } else {
+                // 碰撞發生，固定方塊
+                mergePiece();
+                clearLines(); // 清除已滿的行
+
+                // 生成下一個方塊
+                currentPiece = {
+                    ...nextPieceShape,
+                    pos: { x: Math.floor(COLS / 2) - 2, y: 0 }
+                };
+                nextPieceShape = createPiece();
+                drawNextPiece(); // 更新預覽
+
+                // 檢查是否遊戲結束 (新方塊一生成就發生碰撞)
+                if (!isValidMove(currentPiece.shape, currentPiece.pos)) {
+                    gameOver();
+                }
+                return false;
+            }
+        }
+
+        /**
+         * 立即下落 (Hard Drop)
+         */
+        function hardDrop() {
+            if (isGameOver || isPaused) return;
+
+            // 移動方塊到幽靈位置
+            currentPiece.pos.y = calculateGhostPosition();
+
+            // 最後移動一步，觸發碰撞和固定
+            dropPiece(1);
+            
+            // 立即觸發一次繪製
+            draw();
+        }
+
+
+        /**
+         * 繪製下一塊預覽
+         */
+        function drawNextPiece() {
+            nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+
+            const piece = nextPieceShape;
+            // 計算偏移，使方塊在預覽區居中
+            let minX = 4, minY = 4, maxX = 0, maxY = 0;
+            piece.shape.forEach(([x, y]) => {
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            });
+
+            // 居中偏移量計算
+            const pieceWidth = maxX - minX + 1;
+            const pieceHeight = maxY - minY + 1;
+            const centerX = (nextCanvas.width / BLOCK_SIZE - pieceWidth) / 2;
+            const centerY = (nextCanvas.height / BLOCK_SIZE - pieceHeight) / 2;
+
+            piece.shape.forEach(([x, y]) => {
+                // 調整 x, y 座標以適應居中
+                const adjustedX = x + centerX - minX;
+                const adjustedY = y + centerY - minY;
+                // drawBlock 預設 isGhost=false
+                drawBlock(nextCtx, adjustedX, adjustedY, piece.colorIndex);
+            });
+        }
+
+
+        // --- 遊戲循環與控制 ---
+
+        /**
+         * 遊戲主循環
+         * @param {number} time - 當前時間 (毫秒)
+         */
+        function update(time = 0) {
+            if (isGameOver || isPaused) {
+                if (animationFrameId !== null) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                return;
+            }
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+
+            // 檢查是否需要自然下落
+            if (dropCounter > dropInterval) {
+                dropPiece(1);
+                dropCounter = 0;
+            }
+
+            draw(); // 繪製當前畫面
+
+            // 循環調用
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        /**
+         * 繪製所有遊戲元素
+         */
+        function draw() {
+            // 1. 繪製靜止方塊 (背景)
+            drawBoard();
+
+            // 2. 繪製幽靈方塊 (落點預覽)
+            if (currentPiece) { 
+                const ghostY = calculateGhostPosition();
+                
+                // 創建一個只包含 ghostY 位置的新 piece 物件，但使用 currentPiece 的形狀和顏色
+                const ghostPiece = {
+                    shape: currentPiece.shape,
+                    colorIndex: currentPiece.colorIndex,
+                    pos: { x: currentPiece.pos.x, y: ghostY }
+                };
+                drawPiece(ghostPiece, boardCtx, 0, 0, true);
+            }
+
+
+            // 3. 繪製當前下落中的方塊
+            if (currentPiece) {
+                drawPiece(currentPiece, boardCtx);
+            }
+        }
+
+        /**
+         * 遊戲開始/重新開始
+         */
+        function startGame() {
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            messageBox.style.display = 'none';
+
+            // 重置狀態
+            score = 0;
+            level = 1;
+            linesCleared = 0;
+            dropInterval = 1000;
+            isGameOver = false;
+            isPaused = false;
+
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = level;
+
+            board = createBoard();
+            currentPiece = createPiece(); // 第一塊
+            nextPieceShape = createPiece(); // 預先生成第二塊
+
+            drawNextPiece();
+            draw();
+
+            // 啟用暫停按鈕
+            pauseButton.disabled = false;
+            startButton.textContent = '重新開始 (Enter)';
+            pauseButton.textContent = '暫停 (P)';
+
+            // 開始遊戲循環
+            lastTime = performance.now();
+            update(lastTime);
+        }
+
+        /**
+         * 遊戲結束
+         */
+        function gameOver() {
+            isGameOver = true;
+            pauseButton.disabled = true;
+            startButton.textContent = '再玩一次 (Enter)';
+            showOverlay('遊戲結束!', `您最終獲得了 ${score} 分。`, '重新開始');
+        }
+
+        /**
+         * 暫停/繼續遊戲
+         */
+        function togglePause() {
+            if (isGameOver) return;
+
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseButton.textContent = '繼續 (P)';
+                showOverlay('遊戲暫停', '按下 \'P\' 或 \'繼續遊戲\' 繼續。', '繼續遊戲');
+            } else {
+                pauseButton.textContent = '暫停 (P)';
+                messageBox.style.display = 'none';
+                // 繼續遊戲循環
+                lastTime = performance.now();
+                update(lastTime);
+            }
+        }
+
+        /**
+         * 顯示遊戲覆蓋訊息
+         */
+        function showOverlay(title, text, buttonText) {
+            messageTitle.textContent = title;
+            messageText.textContent = text;
+            messageButton.textContent = buttonText;
+            messageBox.style.display = 'block';
+        }
+
+        // --- 事件監聽器 ---
+
+        startButton.addEventListener('click', () => {
+            if (isGameOver || startButton.textContent === '開始遊戲 (Enter)') {
+                startGame();
+            } else if (isPaused) {
+                togglePause(); // 如果在暫停狀態，點擊相當於繼續
+            } else {
+                // 如果遊戲正在運行，點擊 '重新開始' 則確認後重開
+                // NOTE: 由於 iFrame 限制，使用自訂 UI 替代 confirm()
+                showOverlay('確認重新開始', '確定要重新開始遊戲嗎？這將失去當前進度。', '確定');
+                messageButton.onclick = () => {
+                    messageBox.style.display = 'none';
+                    startGame();
+                };
+                return;
+            }
+        });
+
+        pauseButton.addEventListener('click', togglePause);
+
+        messageButton.addEventListener('click', () => {
+            if (isGameOver) {
+                startGame();
+            } else {
+                togglePause(); // 繼續遊戲
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (isGameOver) {
+                if (event.key === 'Enter') startGame();
+                return;
+            }
+
+            if (event.key === 'p' || event.key === 'P') {
+                togglePause();
+                return;
+            }
+
+            if (isPaused) return;
+
+            switch (event.key) {
+                case 'ArrowLeft':
+                    movePiece(-1);
+                    break;
+                case 'ArrowRight':
+                    movePiece(1);
+                    break;
+                case 'ArrowDown':
+                    // 軟下落加速，但不重置 dropCounter
+                    dropPiece(1);
+                    break;
+                case 'ArrowUp':
+                case 'x':
+                case 'X':
+                    rotatePiece();
+                    break;
+                case ' ': // 空白鍵
+                    event.preventDefault(); // 防止滾動
+                    hardDrop();
+                    break;
+                case 'Enter': // 快速開始/重新開始
+                    startGame();
+                    break;
+            }
+
+            // 每次移動後立即重繪
+            if (!isPaused) draw();
+        });
+
+        // 初始繪製空板
+        board = createBoard();
+        drawBoard();
+    </script>
+</body>
+</html>
