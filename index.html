@@ -22,8 +22,8 @@
             border: 0;
             height: 1px;
             background-color: #ccc;
-            margin: 30px 0 0 0; 
-            display: block; 
+            margin: 30px 0 0 0;
+            display: block;
         }
 
         /* 讓 details 和 iframe 強制換行 */
@@ -72,7 +72,7 @@
         /* ======================================= */
         main {
             max-width: 1200px;
-            margin: 0 auto; 
+            margin: 0 auto;
             padding-left: 20px; /* 保持基礎左側 20px 偏移 */
         }
 
@@ -80,13 +80,13 @@
         /* 內容區塊 ARTICLE 樣式 (擴展到 100% 寬度) */
         /* ======================================= */
         main article {
-            width: 100%; 
-            float: none; 
-            margin-top: 20px; 
-            margin-bottom: 30px; 
-            padding-bottom: 0; 
+            width: 100%;
+            float: none;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 0;
             box-sizing: border-box;
-            clear: both; 
+            clear: both;
         }
 
         /* 讓表格內容也偏移 40px (20px main padding + 20px padding) */
@@ -96,16 +96,16 @@
         
         /* 標題 H2 框線/強調樣式 (距離左側 20px) */
         main article h2 {
-            display: block; 
-            background-color: #f0f8ff; 
+            display: block;
+            background-color: #f0f8ff;
             color: #4682B4;
             padding: 5px 15px 5px 10px;
             margin-top: 0;
-            margin-left: 0; 
+            margin-left: 0;
             margin-bottom: 20px;
-            border: 3px solid #4682B4; 
-            border-radius: 5px; 
-            width: fit-content; 
+            border: 3px solid #4682B4;
+            border-radius: 5px;
+            width: fit-content;
         }
         
         /* 內文、表格、Figure 等需要 40px 偏移的元素 */
@@ -115,7 +115,7 @@
         main article .image-showcase-box,
         main article > audio,
         main article > video {
-            margin-left: 20px; 
+            margin-left: 20px;
         }
         
         /* *************************************** */
@@ -134,7 +134,7 @@
         /* 2. 描述文字區塊 (第二 section - 右欄) */
         #section1 section:nth-of-type(2) {
             /* 計算剩餘寬度：100% - 540px (名片) - 20px gap - 20px main padding */
-            width: calc(100% - 540px); 
+            width: calc(100% - 540px);
             float: left;
             margin-left: 0; /* 讓文字緊貼名片 */
             box-sizing: border-box;
@@ -151,7 +151,7 @@
             background-color: #f0f8ff;
             padding: 10px;
             border-radius: 8px;
-            margin-left: 0; 
+            margin-left: 0;
         }
         
         /* 修正點：表格行內元素垂直居中 (使圖片和文字對齊) */
@@ -161,46 +161,46 @@
         }
 
         /* 新增：名片內文字水平排列 (強制 inline) */
-        #section1 table h1, 
+        #section1 table h1,
         #section1 table p {
             display: inline;
             margin: 0; /* 移除預設的 block 邊距 */
-            padding-right: 10px; 
+            padding-right: 10px;
         }
 
         /* 修正點：頭貼圓角樣式 */
         #section1 table img {
-            width: 180px; 
-            height: 180px; 
-            border-radius: 30%; 
-            object-fit: cover; 
+            width: 180px;
+            height: 180px;
+            border-radius: 30%;
+            object-fit: cover;
             padding: 5px;
         }
         
         /* 學習經歷校徽樣式 */
         #section2 section {
-            display: flex; 
+            display: flex;
             flex-wrap: wrap;
-            justify-content: space-between; 
+            justify-content: space-between;
             margin-bottom: 20px;
-            margin-left: 20px; 
+            margin-left: 20px;
         }
 
         #section2 .school-entry {
-            width: 31%; 
-            min-width: 180px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+            width: 31%;
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            margin-bottom: 20px; 
-            margin-left: 0 !important; 
+            margin-bottom: 20px;
+            margin-left: 0 !important;
         }
 
         #section2 .school-entry img {
-            width: 80px; 
-            height: 80px; 
-            margin: 0 0 10px 0; 
+            width: 80px;
+            height: 80px;
+            margin: 0 0 10px 0;
             object-fit: contain;
         }
 
@@ -209,64 +209,64 @@
         /* *************************************** */
         
         /* 圖片外框容器的通用偏移 */
-        article#section8 > div.image-gallery-wrapper { 
-            padding-left: 20px; 
+        article#section8 > div.image-gallery-wrapper {
+            padding-left: 20px;
         }
         
         /* 圖片作品整體的 wrapper，用於包含兩欄 */
         .image-gallery-wrapper {
-            width: 800px; 
-            margin: 0 auto; 
-            display: flex; 
-            justify-content: space-between; 
-            flex-wrap: wrap; 
+            width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
 
         /* 定義兩欄的大框框 */
         .image-column {
-            width: 340px; 
+            width: 340px;
             float: left;
-            margin-right: 20px; 
+            margin-right: 20px;
             box-sizing: border-box;
-            padding: 0; 
-            display: block; 
-            text-align: left; 
-            margin-bottom: 20px; 
+            padding: 0;
+            display: block;
+            text-align: left;
+            margin-bottom: 20px;
         }
 
         .image-column:last-child {
-            margin-right: 0; 
+            margin-right: 0;
         }
         
         /* 圖片小框框：垂直堆疊在欄內 */
         .image-showcase-box {
-            width: 100%; 
+            width: 100%;
             float: none;
-            display: block; 
-            margin: 0 0 20px 0; 
+            display: block;
+            margin: 0 0 20px 0;
             
-            border: 2px solid #a1cdf1; 
-            border-radius: 8px; 
-            padding: 20px; 
-            background-color: #f8fcff; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); 
-            text-align: center; 
-            
-            word-wrap: break-word; 
+            border: 2px solid #a1cdf1;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8fcff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+
+            word-wrap: break-word;
             overflow-wrap: break-word;
         }
-        
+
         /* 圖片內部的 figure/img 置中 */
         .image-showcase-box figure {
-            margin: 0 auto; 
-            display: block; 
-            text-align: center; 
+            margin: 0 auto;
+            display: block;
+            text-align: center;
         }
 
         .image-showcase-box figure img {
-            max-width: 100%; 
+            max-width: 100%;
             height: auto;
-            margin: 0 auto 10px auto; 
+            margin: 0 auto 10px auto;
             display: block;
         }
 
@@ -658,7 +658,8 @@
         <article id="section7">
             <h2>視訊作品📽️</h2>
             <iframe width="560" height="315" src="https://www.youtube.com/embed/GaQ0SKAYtaE?si=rT5smtxgrK53LBnh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            <hr> 
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/lQ2kFBRfX_g?si=-70it9wsChbBk_iz" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            <hr>
         </article>
 
         <article id="section7_5">
